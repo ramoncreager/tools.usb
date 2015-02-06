@@ -24,8 +24,6 @@
   (.getUsbDeviceDescriptor device))
 
 (defn dump
-  ([] (dump (root)))
-  ([device]
-   (when (.isUsbHub device)
-     (doseq [child (.getAttachedUsbDevices device)]
-       (println child)))))
+  []
+  (doseq [child (devices)]
+    (println (describe child))))
