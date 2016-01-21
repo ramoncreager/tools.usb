@@ -1,5 +1,5 @@
 (ns clojure.tools.usb
-  (:import [javax.usb UsbHostManager UsbConst]))
+  (:import [javax.usb UsbHostManager UsbConst UsbPipe UsbInterface]))
 
 (defn services
   []
@@ -36,17 +36,34 @@
   (describe [o] (.getUsbEndpointDescriptor o)))
 
 (defn configuration
-  [device]
-  (.getActiveUsbConfiguration device))
+  ([device]
+   (.getActiveUsbConfiguration device))
+  ([device number]
+   (.get (.getUsbConfigurations device) number)))
+
 
 (defn interface
-  [device num]
-  (let [config (configuration device)]
-    (.getUsbInterface config (byte num))))
+  [config number]
+  (.getUsbInterface config (byte number)))
+
+(defn endpoint
+  [iface ep]
+  (.get (.getUsbEndpoints iface) ep))
+
+(defn pipe
+  [ep]
+  (.getUsbPipe ep))
 
 (defn dump
   []
   (doseq [child (devices)]
     (println (describe child))))
 
-
+(defn find-device
+  "Reads all the devices (using 'devices' above), and returns a list
+  of all devices that match vendor-id and product-id"
+  [vendor-id product-id]
+  (filter (fn [d] (let [desc (describe d)]
+                    (and (= product-id (.idProduct desc))
+                         (= vendor-id (.idVendor desc)))))
+          (devices)))
